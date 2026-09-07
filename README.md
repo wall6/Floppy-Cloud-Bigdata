@@ -39,10 +39,11 @@ The main focus is on understanding how cloud computing and big data technologies
 * [x] Git and GitHub setup
 * [x] GitHub repository created
 * [x] Initial project structure
+* [x] Spark data processing
+* [x] Data transformation and analysis
 * [ ] AWS S3 / Data Lake setup
-* [ ] Data pipeline implementation
-* [ ] Spark data processing
-* [ ] Data transformation and analysis
+* [ ] Docker + EC2 deployment
+* [ ] Full cloud pipeline (S3 → EC2 → Docker → Spark → S3)
 * [ ] Final documentation
 * [ ] Project presentation
 

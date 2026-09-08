@@ -1,12 +1,12 @@
 from pyspark.sql import SparkSession
 
-from pyspark.sql.functions import regexp_replace, col
+from pyspark.sql.functions import regexp_replace, col, when, sum as spark_sum, desc, asc, round as spark_round
 
 from pyspark.sql.types import DoubleType
 
 from pyspark.sql.functions import when
 
-from pyspark.sql.functions import round as spark_round
+from pyspark.sql.functions import round as spark_round 
 
 spark = SparkSession.builder \
     .appName("FloppySalesAnalysis") \
@@ -190,3 +190,42 @@ external_sales_only.selectExpr(
     spark_round("Total_Cost", 2).alias("Total_Cost"),
     spark_round("Total_Profit", 2).alias("Total_Profit")
 ).show()
+
+# --- 1 & 2: Top products by revenue and profit ---
+product_summary = external_sales_only.groupBy("Item Name").agg(
+    spark_round(spark_sum("Revenue"), 2).alias("Total_Revenue"),
+    spark_round(spark_sum("Cost"), 2).alias("Total_Cost"),
+    spark_round(spark_sum("Profit"), 2).alias("Total_Profit")
+)
+
+print("Top 10 products by revenue:")
+product_summary.orderBy(desc("Total_Revenue")).show(10, truncate=False)
+
+print("Top 10 products by profit:")
+product_summary.orderBy(desc("Total_Profit")).show(10, truncate=False)
+
+# --- 3: Products sold at a loss ---
+print("Products sold at a loss (negative total profit):")
+product_summary.filter(product_summary["Total_Profit"] < 0) \
+    .orderBy(asc("Total_Profit")).show(20, truncate=False)
+
+# --- 4 & 5: Top customers by revenue and profit ---
+customer_summary = external_sales_only.groupBy("Customer Name").agg(
+    spark_round(spark_sum("Revenue"), 2).alias("Total_Revenue"),
+    spark_round(spark_sum("Profit"), 2).alias("Total_Profit")
+)
+
+print("Top 10 customers by revenue:")
+customer_summary.orderBy(desc("Total_Revenue")).show(10, truncate=False)
+
+print("Top 10 customers by profit:")
+customer_summary.orderBy(desc("Total_Profit")).show(10, truncate=False)
+
+# --- 6: Overall profit margin ---
+totals = external_sales_only.selectExpr(
+    "sum(Revenue) as Total_Revenue",
+    "sum(Profit) as Total_Profit"
+).collect()[0]
+
+margin_pct = (totals["Total_Profit"] / totals["Total_Revenue"]) * 100
+print(f"Overall profit margin: {margin_pct:.2f}%")

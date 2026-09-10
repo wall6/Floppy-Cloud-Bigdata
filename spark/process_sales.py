@@ -4,25 +4,26 @@ from pyspark.sql.functions import regexp_replace, col, when, sum as spark_sum, d
 
 from pyspark.sql.types import DoubleType
 
-from pyspark.sql.functions import when
-
-from pyspark.sql.functions import round as spark_round 
-
 spark = SparkSession.builder \
     .appName("FloppySalesAnalysis") \
+    .config("spark.driver.memory", "512m") \
+    .config("spark.driver.maxResultSize", "256m") \
+    .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262") \
+    .config("spark.hadoop.fs.s3a.aws.credentials.provider", "com.amazonaws.auth.InstanceProfileCredentialsProvider") \
+    .config("spark.hadoop.fs.s3a.endpoint.region", "us-east-1") \
     .getOrCreate()
 
 print("Spark started successfully!")
 
 invoices = spark.read.csv(
-    "data/Invoice.csv",
+    "s3a://floppy-cloud-bigdata-2026/raw data/Invoice.csv",
     header=True,
     inferSchema=False,
     multiLine=True
 )
 
 items = spark.read.csv(
-    "data/item.csv",
+    "s3a://floppy-cloud-bigdata-2026/raw data/Item.csv",
     header=True,
     inferSchema=False
 )
@@ -143,8 +144,8 @@ sales_analysis.select(
 # --- Sanity check: any rows where numeric casting failed (null after cast, non-null before) ---
 print("Rows where numeric cast may have failed:")
 sales_analysis.filter(
-    col("Purchase Rate Clean").isNull() | 
-    col("Item Price Clean").isNull() | 
+    col("Purchase Rate Clean").isNull() |
+    col("Item Price Clean").isNull() |
     col("Item Total Clean").isNull()
 ).select("Invoice ID", "Product ID", "Purchase Rate", "Item Price", "Item Total").show(20, truncate=False)
 
@@ -229,3 +230,10 @@ totals = external_sales_only.selectExpr(
 
 margin_pct = (totals["Total_Profit"] / totals["Total_Revenue"]) * 100
 print(f"Overall profit margin: {margin_pct:.2f}%")
+
+# --- Write final results back to S3 (processed data) ---
+output_path = "s3a://floppy-cloud-bigdata-2026/processed data/sales_analysis_output"
+
+sales_analysis_tagged.coalesce(1).write.mode("overwrite").csv(output_path, header=True)
+
+print(f"Processed output written to: {output_path}")

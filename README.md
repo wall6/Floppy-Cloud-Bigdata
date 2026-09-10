@@ -43,7 +43,7 @@ The main focus is on understanding how cloud computing and big data technologies
 * [x] Data transformation and analysis
 * [x] AWS S3 / Data Lake setup
 * [x] Docker + EC2 deployment
-* [ ] Full cloud pipeline (S3 → EC2 → Docker → Spark → S3)
+* [x] Full cloud pipeline (S3 → EC2 → Docker → Spark → S3)
 * [ ] Final documentation
 * [ ] Project presentation
 

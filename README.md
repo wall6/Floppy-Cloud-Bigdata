@@ -96,9 +96,9 @@ Before touching AWS at all, I first got the Spark script working on my own lapto
 * [x] AWS S3 / Data Lake setup
 * [x] Docker + EC2 deployment
 * [x] Full cloud pipeline (S3 → EC2 → Docker → Spark → S3)
-* [ ] Final documentation
-* [ ] Project presentation
+* [x] Final documentation
+* [x] Project presentation
 
 ## Status
 
-**In Development**
+**Complete - Ready for submission**
